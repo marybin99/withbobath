@@ -9,7 +9,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ["Open Sans", "sans-serif"],
-        nanum: ["Nanum HaNaSonGeurSsi", "sans-serif"],
+        nanum: ['"Nanum HaNaSonGeurSsi"', "sans-serif"],  
         jua: ["Jua", "sans-serif"],
       },
       colors: {
