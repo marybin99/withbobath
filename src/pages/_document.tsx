@@ -1,12 +1,11 @@
 import { Html, Head, Main, NextScript } from "next/document";
-import Script from "next/script";
 
 export default function Document() {
   return (
     <Html lang="ko">
       <Head>
         <link
-          rel="preload"
+          // rel="preload"
           href="/fonts/Nanum-HaNaSonGeurSsi.woff2"
           as="font"
           type="font/woff2"
