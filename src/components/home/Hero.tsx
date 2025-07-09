@@ -12,7 +12,7 @@ const Hero: React.FC = () => {
         isScrolled ? "lg:mt-[108px]" : "lg:mt-[197px]"
       }`}
     >
-      <div className="container h-full px-4 mx-auto">
+      <div className="container px-4 mx-auto h-full">
         <div className="flex flex-col lg:flex-row items-center justify-center h-full py-8 lg:py-[80px] gap-8 lg:gap-[71px]">
           <div className="w-[200px] h-[200px] lg:w-[250px] lg:h-[250px] relative">
             <Image
@@ -23,7 +23,7 @@ const Hero: React.FC = () => {
             />
           </div>
           <div className="flex flex-col gap-4 text-center lg:gap-5 lg:text-left">
-            <h2 className="text-3xl lg:text-[60px] font-nanum tracking-[0.05em] leading-[1.2em] lg:leading-[1em] whitespace-pre-line">
+            <h2 className="text-3xl lg:text-[60px] font-hana tracking-[0.05em] leading-[1.2em] lg:leading-[1em] whitespace-pre-line">
               <span className="text-[#1C7F00]">더함발달연구센터</span>
               {"는\n아이의 눈높이에서\n시작합니다"}
             </h2>
@@ -31,7 +31,7 @@ const Hero: React.FC = () => {
               href="/contact"
               className="w-full lg:w-[161px] h-[45px] lg:h-[50px] bg-[#E4EDDC] rounded-lg flex items-center justify-center mx-auto lg:mx-0"
             >
-              <span className="text-xl lg:text-[28px] font-nanum">
+              <span className="text-xl lg:text-[28px] font-hana">
                 상담 문의하기
               </span>
             </Link>

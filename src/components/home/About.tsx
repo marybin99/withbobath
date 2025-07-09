@@ -7,10 +7,10 @@ const About: React.FC = () => {
       <div className="container px-4 mx-auto">
         <div className="max-w-[640px] mx-auto space-y-8 lg:space-y-10">
           <div className="space-y-5 lg:space-y-7">
-            <h2 className="text-2xl lg:text-[36px] font-nanum text-center lg:text-left">
+            <h2 className="text-2xl lg:text-[36px] font-hana text-center lg:text-left">
               더함발달연구센터는...
             </h2>
-            <div className="flex flex-col items-center gap-4 lg:flex-row lg:items-start lg:gap-6">
+            <div className="flex flex-col gap-4 items-center lg:flex-row lg:items-start lg:gap-6">
               <div className="w-[25px] h-[25px] lg:w-[30px] lg:h-[30px] relative flex-shrink-0">
                 <Image
                   src="/images/brain-icon.svg"
@@ -25,7 +25,7 @@ const About: React.FC = () => {
                 }
               </p>
             </div>
-            <div className="flex flex-col items-center gap-4 lg:flex-row lg:items-start lg:gap-6">
+            <div className="flex flex-col gap-4 items-center lg:flex-row lg:items-start lg:gap-6">
               <div className="w-[25px] h-[25px] lg:w-[30px] lg:h-[30px] relative flex-shrink-0">
                 <Image
                   src="/images/person-icon.svg"

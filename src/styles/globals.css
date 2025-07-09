@@ -6,8 +6,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
 
 @font-face {
-  font-family: 'Nanum HaNaSonGeurSsi';
-  src: url('/fonts/Nanum-HaNaSonGeurSsi.woff2') format('woff2');
+  font-family: 'Hana_handwriting';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/naverfont_05@1.0/Hana_handwriting.woff') format('woff');
   font-weight: normal;
   font-style: normal;
   font-display: swap;

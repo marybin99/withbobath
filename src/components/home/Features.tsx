@@ -36,7 +36,7 @@ const Features: React.FC = () => {
                 key={index}
                 className="w-full md:w-[145px] h-[200px] md:h-[235px] bg-[#D2E5CC] border-2 border-[#7CA172] rounded-lg p-4 lg:pt-5 lg:px-[10px] overflow-hidden"
               >
-                <div className="flex flex-col items-center gap-3 md:gap-5">
+                <div className="flex flex-col gap-3 items-center md:gap-5">
                   <div className="w-[40px] h-[40px] md:w-[45px] md:h-[45px] relative">
                     <Image
                       src={feature.icon}
@@ -45,7 +45,7 @@ const Features: React.FC = () => {
                       className="object-contain"
                     />
                   </div>
-                  <h3 className="text-xl md:text-[24px] font-nanum text-center">
+                  <h3 className="text-xl md:text-[24px] font-hana text-center">
                     {feature.title}
                   </h3>
                   <p className="text-xs md:text-[14px] text-center break-keep">

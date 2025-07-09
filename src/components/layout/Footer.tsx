@@ -18,8 +18,7 @@ const Footer: React.FC<FooterProps> = ({ isAtBottom }) => {
   return (
     <footer
       className={`text-white bg-black w-full ${
-        isAtBottom ? "md:fixed md:bottom-0 md:left-0 md:right-0" : ""
-      }`}
+        isAtBottom ? "md:fixed md:bottom-0 md:left-0 md:right-0" : ""}`}
     >
       <div className="flex items-center h-full px-4 py-[38px] mx-auto">
         <div className="max-w-[1024px] mx-auto w-full">
@@ -27,7 +26,7 @@ const Footer: React.FC<FooterProps> = ({ isAtBottom }) => {
             {/* 센터 정보 */}
             <div className="space-y-5 md:space-y-10">
               <div className="space-y-3">
-                <h2 className="text-4xl lg:text-[54px] font-nanum leading-[1.15]">
+                <h2 className="text-4xl lg:text-[54px] font-hana leading-[1.15]">
                   더함발달연구센터
                 </h2>
                 <p className="text-base leading-[1.36]">
