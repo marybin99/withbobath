@@ -56,7 +56,7 @@ const Header: React.FC = () => {
                 }`}
               />
               <h1
-                className={`text-[28px] md:text-4xl text-[#1C7F00] font-nanum transition-all duration-300 ${
+                className={`text-[28px] md:text-4xl text-[#1C7F00] font-hana transition-all duration-300 ${
                   isScrolled ? "lg:text-4xl" : "lg:text-[64px]"
                 }`}
               >
