@@ -8,7 +8,7 @@ const TableDetail: React.FC<{ notice?: NoticeData }> = ({ notice }) => {
         <p className="text-2xl font-bold">해당 공지사항을 찾을 수 없습니다.</p>
       ) : (
         <>
-          <h1 className="mb-4 text-2xl font-bold">{notice.title}</h1>
+          <h1 className="mb-4 text-lg font-bold md:text-2xl">{notice.title}</h1>
           <div className="flex justify-between">
             <div className="mb-2 text-gray-500">{notice.date}</div>
             <div className="mb-2 text-gray-500">{notice.author}</div>
