@@ -1,38 +1,22 @@
 import Link from "next/link";
-
-const notices = [
-  { id: 1, title: "2024년 7월 휴관 안내", date: "2024-07-01" },
-  { id: 2, title: "여름방학 프로그램 모집", date: "2024-06-20" },
-  { id: 3, title: "센터 방역 안내", date: "2024-06-10" },
-];
+import { notices } from "@/data/notice";
 
 const Table = () => {
   return (
-    <table className="min-w-full bg-white rounded-lg border border-gray-200 shadow">
-      <thead>
-        <tr className="bg-[#E4EDDC] text-[#1C7F00]">
-          <th className="px-4 py-3 text-left border-b">번호</th>
-          <th className="px-4 py-3 text-left border-b">제목</th>
-          <th className="px-4 py-3 text-left border-b">등록일</th>
-        </tr>
-      </thead>
-      <tbody>
-        {notices.map((notice) => (
-          <tr key={notice.id} className="hover:bg-[#F5F9F2]">
-            <td className="px-4 py-2 border-b">{notice.id}</td>
-            <td className="px-4 py-2 border-b">
-              <Link
-                href={`/notice/${notice.id}`}
-                className="text-[#1C7F00] hover:underline"
-              >
-                {notice.title}
-              </Link>
-            </td>
-            <td className="px-4 py-2 border-b">{notice.date}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="flex flex-col gap-6">
+      {notices.map((notice) => (
+        <Link key={notice.id} href={`/notice/${notice.id}`} className="block">
+          <div className="flex flex-col gap-2 p-6 bg-[#F5F9F2] rounded-xl border border-gray-200 shadow transition-colors duration-200 cursor-pointer hover:bg-white">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-lg font-bold">{notice.title}</span>
+              <span className="text-base font-medium text-gray-400">
+                {notice.date.replace(/-/g, ".")}
+              </span>
+            </div>
+          </div>
+        </Link>
+      ))}
+    </div>
   );
 };
 

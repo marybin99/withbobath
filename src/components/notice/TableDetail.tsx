@@ -9,7 +9,11 @@ const TableDetail: React.FC<{ notice?: NoticeData }> = ({ notice }) => {
       ) : (
         <>
           <h1 className="mb-4 text-2xl font-bold">{notice.title}</h1>
-          <div className="mb-2 text-gray-500">{notice.date}</div>
+          <div className="flex justify-between">
+            <div className="mb-2 text-gray-500">{notice.date}</div>
+            <div className="mb-2 text-gray-500">{notice.author}</div>
+          </div>
+          <hr />
           <div
             className="py-6 text-lg whitespace-pre-line"
             dangerouslySetInnerHTML={{ __html: notice.content }}
