@@ -27,7 +27,7 @@ const TherapyDetail: React.FC = () => {
           isScrolled ? "lg:mt-[108px]" : "lg:mt-[197px]"
         } transition-all duration-300`}
       >
-        <div className="px-4 py-12 mx-auto max-w-3xl md:px-8">
+        <div className="px-4 py-8 mx-auto max-w-3xl md:px-8 md:py-12">
           <div className="flex justify-start mb-4">
             <Link
               href={listHref}

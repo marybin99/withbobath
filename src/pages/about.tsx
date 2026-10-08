@@ -1,9 +1,9 @@
-import React from "react";
-import Head from "next/head";
-import Layout from "../components/layout/Layout";
-import Teachers from "../components/about/Teachers";
-import Location from "../components/about/Location";
-import { useScroll } from "../components/layout/Header";
+import React from 'react';
+import Head from 'next/head';
+import Layout from '../components/layout/Layout';
+import Teachers from '../components/about/Teachers';
+import Location from '../components/about/Location';
+import { useScroll } from '../components/layout/Header';
 
 const AboutPage: React.FC = () => {
   const isScrolled = useScroll();
@@ -15,10 +15,10 @@ const AboutPage: React.FC = () => {
       </Head>
       <div
         className={`bg-white min-h-screen mt-[82px] ${
-          isScrolled ? "lg:mt-[108px]" : "lg:mt-[197px]"
+          isScrolled ? 'lg:mt-[108px]' : 'lg:mt-[197px]'
         } transition-all duration-300`}
       >
-        <div className="max-w-5xl px-4 py-12 mx-auto md:px-8">
+        <div className="max-w-5xl px-4 py-8 mx-auto md:px-8 md:py-12">
           <Teachers />
           <Location />
         </div>

@@ -20,7 +20,7 @@ const GuidePage: React.FC = () => {
           isScrolled ? "lg:mt-[108px]" : "lg:mt-[197px]"
         } transition-all duration-300`}
       >
-        <div className="max-w-5xl px-4 py-12 mx-auto md:px-8 md:py-16">
+        <div className="max-w-5xl px-4 py-8 mx-auto md:px-8 md:py-12">
           <h2 className="pb-2 mb-10 text-2xl font-semibold border-b">이용안내</h2>
 
           <section aria-labelledby="first-visit" className="mb-14">

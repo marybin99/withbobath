@@ -1,4 +1,10 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## 질문답변게시판 설정
+
+https://supabase.com/dashboard/org/ggcwvrfsypudpadawgtp
+
+질문 테이블을 처음 만들 때는 `supabase/migrations/20261008_create_qna_posts.sql`과
+`supabase/migrations/20261009_private_qna_posts.sql`을 순서대로 실행합니다.
+이미 질문 테이블이 있으면 두 번째 SQL만 실행합니다.
 
 ## Getting Started
 

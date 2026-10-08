@@ -17,7 +17,7 @@ const NoticePage: React.FC = () => {
           isScrolled ? "lg:mt-[108px]" : "lg:mt-[197px]"
         } transition-all duration-300`}
       >
-        <div className="px-4 py-12 mx-auto max-w-5xl md:px-8">
+        <div className="px-4 py-8 mx-auto max-w-5xl md:px-8 md:py-12">
           <h2 className="pb-2 mb-5 text-2xl font-semibold border-b">
             공지사항
           </h2>
