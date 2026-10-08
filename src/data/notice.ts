@@ -5,6 +5,7 @@ export interface NoticeData {
   author: string;
   content: string;
   isPrivate?: boolean;
+  imageUrl?: string;
 }
 
 export const notices: NoticeData[] = [

@@ -9,6 +9,7 @@ interface QnaRow {
   created_at: string;
   is_private: boolean;
   content?: string;
+  image_path?: string | null;
   password_hash?: string | null;
   pin_failures?: number;
   pin_locked_until?: string | null;
@@ -32,6 +33,39 @@ const validText = (value: unknown, maxLength: number): value is string =>
   typeof value === "string" && value.trim().length > 0 && value.trim().length <= maxLength;
 
 const EDIT_TOKEN_LIFETIME_MS = 60 * 60 * 1000;
+const MAX_IMAGE_BYTES = 3 * 1024 * 1024;
+const IMAGE_BUCKET = "qna-images";
+
+export const config = {
+  api: { bodyParser: { sizeLimit: "5mb" } },
+};
+
+const parseImage = (value: unknown) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const image = value as { contentType?: unknown; base64?: unknown };
+  if (
+    typeof image.contentType !== "string" ||
+    typeof image.base64 !== "string" ||
+    image.base64.length === 0 ||
+    image.base64.length > Math.ceil(MAX_IMAGE_BYTES / 3) * 4 ||
+    !/^[A-Za-z0-9+/]+={0,2}$/.test(image.base64)
+  ) return null;
+
+  const bytes = Buffer.from(image.base64, "base64");
+  if (bytes.length === 0 || bytes.length > MAX_IMAGE_BYTES) return null;
+  const isJpeg = bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  const isPng = bytes.subarray(0, 8).equals(Buffer.from("89504e470d0a1a0a", "hex"));
+  const isGif = bytes.subarray(0, 6).toString("ascii") === "GIF87a" ||
+    bytes.subarray(0, 6).toString("ascii") === "GIF89a";
+  const isWebp = bytes.subarray(0, 4).toString("ascii") === "RIFF" &&
+    bytes.subarray(8, 12).toString("ascii") === "WEBP";
+  const extension =
+    image.contentType === "image/jpeg" && isJpeg ? "jpg" :
+    image.contentType === "image/png" && isPng ? "png" :
+    image.contentType === "image/gif" && isGif ? "gif" :
+    image.contentType === "image/webp" && isWebp ? "webp" : null;
+  return extension ? { bytes, contentType: image.contentType, extension } : null;
+};
 
 const createEditToken = (id: number, secret: string) => {
   const payload = `${id}.${Date.now() + EDIT_TOKEN_LIFETIME_MS}`;
@@ -64,7 +98,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const endpoint = `${url.replace(/\/$/, "")}/rest/v1/qna_posts`;
+  const storageEndpoint = `${url.replace(/\/$/, "")}/storage/v1`;
   const headers = { apikey: secretKey, "Content-Type": "application/json" };
+  const storageHeaders = { apikey: secretKey };
+
+  const uploadImage = async (path: string, image: NonNullable<ReturnType<typeof parseImage>>) => {
+    const response = await fetch(`${storageEndpoint}/object/${IMAGE_BUCKET}/${path}`, {
+      method: "POST",
+      headers: { ...storageHeaders, "Content-Type": image.contentType },
+      body: new Uint8Array(image.bytes),
+    });
+    if (!response.ok) throw new Error("Image upload failed");
+  };
+
+  const deleteImage = (path: string) =>
+    fetch(`${storageEndpoint}/object/${IMAGE_BUCKET}/${path}`, {
+      method: "DELETE",
+      headers: storageHeaders,
+    });
+
+  const toPostWithImage = async (row: QnaRow, unlocked = false): Promise<NoticeData> => {
+    const post = toPost(row, unlocked);
+    if (!row.image_path || (row.is_private && !unlocked)) return post;
+    const response = await fetch(
+      `${storageEndpoint}/object/sign/${IMAGE_BUCKET}/${encodeURIComponent(row.image_path)}`,
+      {
+        method: "POST",
+        headers: { ...storageHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify({ expiresIn: 3600 }),
+      }
+    );
+    if (!response.ok) throw new Error("Image signing failed");
+    const result = await response.json();
+    if (typeof result.signedURL !== "string") throw new Error("Missing signed image URL");
+    return { ...post, imageUrl: `${storageEndpoint}${result.signedURL}` };
+  };
 
   const readRows = async (select: string, id?: number): Promise<QnaRow[]> => {
     const params = new URLSearchParams({ select });
@@ -90,7 +158,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const getProtectedRow = async (id: number) => {
     const rows = await readRows(
-      "id,title,author,content,created_at,is_private,password_hash,pin_failures,pin_locked_until",
+      "id,title,author,content,image_path,created_at,is_private,password_hash,pin_failures,pin_locked_until",
       id
     );
     return rows[0];
@@ -132,9 +200,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (typeof id !== "string" || !/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id))) {
         return res.status(400).json({ error: "올바르지 않은 질문 번호입니다." });
       }
-      const rows = await readRows("id,title,author,content,created_at,is_private", Number(id));
+      const rows = await readRows("id,title,author,content,image_path,created_at,is_private", Number(id));
       return rows.length
-        ? res.status(200).json(toPost(rows[0]))
+        ? res.status(200).json(await toPostWithImage(rows[0]))
         : res.status(404).json({ error: "해당 질문을 찾을 수 없습니다." });
     }
 
@@ -150,7 +218,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!row.is_private) return res.status(400).json({ error: "비밀글이 아닙니다." });
 
       if (hasValidEditToken(body.editToken, row.id, secretKey)) {
-        return res.status(200).json(toPost(row, true));
+        return res.status(200).json(await toPostWithImage(row, true));
       }
       if (body.editToken !== undefined && body.password === undefined) {
         return res.status(401).json({ error: "인증 시간이 만료되었습니다. 비밀번호를 다시 입력해 주세요." });
@@ -161,7 +229,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const result = await verifyPin(row, body.password);
       if (result === "locked") return res.status(429).json({ error: "비밀번호 입력 횟수를 초과했습니다. 15분 후 다시 시도해 주세요." });
       if (result === "invalid") return res.status(401).json({ error: "비밀번호가 일치하지 않습니다." });
-      return res.status(200).json({ ...toPost(row, true), editToken: createEditToken(row.id, secretKey) });
+      return res.status(200).json({ ...await toPostWithImage(row, true), editToken: createEditToken(row.id, secretKey) });
     }
 
     if (req.method === "PATCH") {
@@ -188,8 +256,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (result === "invalid") return res.status(401).json({ error: "비밀번호가 일치하지 않습니다." });
       }
 
-      await updateRow(row.id, { title: body.title.trim(), content: body.content.trim() });
-      return res.status(200).json({ id: row.id });
+      if (body.image !== undefined && body.removeImage === true) {
+        return res.status(400).json({ error: "이미지 교체와 제거를 동시에 선택할 수 없습니다." });
+      }
+      if (body.removeImage !== undefined && typeof body.removeImage !== "boolean") {
+        return res.status(400).json({ error: "이미지 변경 내용을 확인해 주세요." });
+      }
+      const image = body.image === undefined ? undefined : parseImage(body.image);
+      if (image === null) {
+        return res.status(400).json({ error: "이미지는 JPG, PNG, WebP, GIF 파일만 첨부할 수 있으며 3MB 이하여야 합니다." });
+      }
+
+      const imagePath = image ? `${randomBytes(16).toString("hex")}.${image.extension}` : null;
+      try {
+        if (image && imagePath) await uploadImage(imagePath, image);
+        await updateRow(row.id, {
+          title: body.title.trim(),
+          content: body.content.trim(),
+          ...(imagePath ? { image_path: imagePath } : body.removeImage ? { image_path: null } : {}),
+        });
+      } catch (updateError) {
+        if (imagePath) await deleteImage(imagePath).catch(() => undefined);
+        throw updateError;
+      }
+      if (row.image_path && (imagePath || body.removeImage)) {
+        await deleteImage(row.image_path).catch(() => undefined);
+      }
+      return res.status(200).json({ id: row.id, editToken: createEditToken(row.id, secretKey) });
     }
 
     if (
@@ -202,28 +295,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "입력 내용과 글자 수를 확인해 주세요." });
     }
 
+    const image = body.image === undefined ? undefined : parseImage(body.image);
+    if (image === null) {
+      return res.status(400).json({ error: "이미지는 JPG, PNG, WebP, GIF 파일만 첨부할 수 있으며 3MB 이하여야 합니다." });
+    }
+
     let passwordHash: string | null = null;
     if (body.isPrivate) {
       const salt = randomBytes(16).toString("hex");
       passwordHash = `${salt}:${scryptSync(body.password, salt, 64).toString("hex")}`;
     }
 
-    const response = await fetch(`${endpoint}?select=id`, {
-      method: "POST",
-      headers: { ...headers, Prefer: "return=representation" },
-      body: JSON.stringify({
-        title: body.title.trim(),
-        author: body.author.trim(),
-        content: body.content.trim(),
-        is_private: body.isPrivate,
-        password_hash: passwordHash,
-      }),
-    });
-    if (!response.ok) throw new Error("Database insert failed");
+    const imagePath = image ? `${randomBytes(16).toString("hex")}.${image.extension}` : null;
+    try {
+      if (image && imagePath) {
+        await uploadImage(imagePath, image);
+      }
 
-    const rows = (await response.json()) as Pick<QnaRow, "id">[];
-    if (!rows.length) throw new Error("Missing inserted row");
-    return res.status(201).json({ id: rows[0].id });
+      const response = await fetch(`${endpoint}?select=id`, {
+        method: "POST",
+        headers: { ...headers, Prefer: "return=representation" },
+        body: JSON.stringify({
+          title: body.title.trim(),
+          author: body.author.trim(),
+          content: body.content.trim(),
+          is_private: body.isPrivate,
+          password_hash: passwordHash,
+          image_path: imagePath,
+        }),
+      });
+      if (!response.ok) throw new Error("Database insert failed");
+
+      const rows = (await response.json()) as Pick<QnaRow, "id">[];
+      if (!rows.length) throw new Error("Missing inserted row");
+      return res.status(201).json({ id: rows[0].id });
+    } catch (insertError) {
+      if (imagePath) {
+        await deleteImage(imagePath).catch(() => undefined);
+      }
+      throw insertError;
+    }
   } catch {
     return res.status(502).json({ error: "연결에 문제가 생겼습니다. 다시 시도해 주세요." });
   }

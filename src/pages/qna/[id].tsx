@@ -31,8 +31,13 @@ const QnaDetail: React.FC = () => {
     setIsLoading(true);
     setPost(undefined);
     setIsUnlocked(false);
+    setPassword("");
     setError("");
     setUnlockError("");
+    const tokenKey = `qna-edit-token:${id}`;
+    const returnKey = `qna-return-after-edit:${id}`;
+    const returningFromEdit = window.sessionStorage.getItem(returnKey) === "1";
+    if (!returningFromEdit) window.sessionStorage.removeItem(tokenKey);
 
     const loadPost = async () => {
       try {
@@ -44,21 +49,20 @@ const QnaDetail: React.FC = () => {
           throw new Error(result.error || "질문을 불러오지 못했습니다.");
         }
         setPost(result);
-
-        if (result.isPrivate) {
-          const savedToken = window.sessionStorage.getItem(`qna-edit-token:${id}`);
-          if (savedToken) {
+        if (result.isPrivate && returningFromEdit) {
+          const editToken = window.sessionStorage.getItem(tokenKey);
+          if (editToken) {
             const unlockResponse = await fetch("/api/qna", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ action: "unlock", id: result.id, editToken: savedToken }),
+              body: JSON.stringify({ action: "unlock", id: result.id, editToken }),
               signal: controller.signal,
             });
             if (unlockResponse.ok) {
               setPost(await unlockResponse.json());
               setIsUnlocked(true);
             } else {
-              window.sessionStorage.removeItem(`qna-edit-token:${id}`);
+              window.sessionStorage.removeItem(tokenKey);
             }
           }
         }
@@ -67,6 +71,9 @@ const QnaDetail: React.FC = () => {
           setError(fetchError.message || "질문을 불러오지 못했습니다.");
         }
       } finally {
+        if (!controller.signal.aborted && returningFromEdit) {
+          window.sessionStorage.removeItem(returnKey);
+        }
         if (!controller.signal.aborted) setIsLoading(false);
       }
     };

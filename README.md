@@ -2,9 +2,10 @@
 
 https://supabase.com/dashboard/org/ggcwvrfsypudpadawgtp
 
-질문 테이블을 처음 만들 때는 `supabase/migrations/20261008_create_qna_posts.sql`과
-`supabase/migrations/20261009_private_qna_posts.sql`을 순서대로 실행합니다.
-이미 질문 테이블이 있으면 두 번째 SQL만 실행합니다.
+질문 테이블을 처음 만들 때는 `supabase/migrations/20261008_create_qna_posts.sql`,
+`supabase/migrations/20261009_private_qna_posts.sql`,
+`supabase/migrations/20261010_qna_images.sql`을 순서대로 실행합니다.
+이미 비밀글 기능까지 설정했다면 이미지 첨부를 위해 세 번째 SQL만 실행합니다.
 
 ## Getting Started
 

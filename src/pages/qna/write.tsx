@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Layout from "@/components/layout/Layout";
 import { useScroll } from "@/components/layout/Header";
+import { isValidQnaImage, QNA_IMAGE_ACCEPT, QNA_IMAGE_ERROR, readQnaImage } from "@/components/qna/image";
 import {
   qnaBackLinkClass,
   qnaFormCardClass,
@@ -18,6 +19,30 @@ const QnaWritePage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState("");
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreview("");
+      return;
+    }
+    const objectUrl = URL.createObjectURL(imageFile);
+    setImagePreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [imageFile]);
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    if (file && !isValidQnaImage(file)) {
+      setError(QNA_IMAGE_ERROR);
+      setImageFile(null);
+      event.target.value = "";
+      return;
+    }
+    setError("");
+    setImageFile(file);
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -45,6 +70,7 @@ const QnaWritePage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      const image = imageFile ? await readQnaImage(imageFile) : undefined;
       const response = await fetch("/api/qna", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -53,6 +79,7 @@ const QnaWritePage: React.FC = () => {
           author,
           content,
           isPrivate: privatePost,
+          ...(image ? { image } : {}),
           ...(privatePost ? { password } : {}),
         }),
       });
@@ -135,6 +162,33 @@ const QnaWritePage: React.FC = () => {
                 placeholder="질문 내용을 자세히 적어주세요"
                 className={`${qnaInputClass} min-h-[240px] resize-y leading-7`}
               />
+            </div>
+            <div>
+              <label htmlFor="qna-image" className="block mb-2 text-sm font-semibold text-gray-700">이미지 첨부 <span className="font-normal text-gray-500">· 선택</span></label>
+              <input
+                id="qna-image"
+                type="file"
+                accept={QNA_IMAGE_ACCEPT}
+                onChange={handleImageChange}
+                className="block w-full rounded-xl border border-[#C9DCC2] bg-white px-4 py-3 text-sm text-gray-700 file:mr-4 file:rounded-lg file:border-0 file:bg-[#E9F4E4] file:px-3 file:py-2 file:font-semibold file:text-primary"
+              />
+              <p className="mt-2 text-sm text-gray-500">JPG, PNG, WebP, GIF · 최대 3MB · 1장</p>
+              {imagePreview && (
+                <div className="mt-4">
+                  <img src={imagePreview} alt="첨부할 이미지 미리보기" className="max-h-64 max-w-full rounded-xl border border-[#DDE8D8] object-contain" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageFile(null);
+                      const input = document.getElementById("qna-image") as HTMLInputElement | null;
+                      if (input) input.value = "";
+                    }}
+                    className="mt-2 text-sm font-medium text-gray-600 underline hover:text-primary"
+                  >
+                    이미지 제거
+                  </button>
+                </div>
+              )}
             </div>
             <div className="rounded-xl border border-[#DCE9D7] bg-[#F7FBF5] p-5">
               <label className="flex items-start gap-3 cursor-pointer">

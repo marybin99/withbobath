@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Layout from "@/components/layout/Layout";
 import { useScroll } from "@/components/layout/Header";
 import PinGate from "@/components/qna/PinGate";
+import { isValidQnaImage, QNA_IMAGE_ACCEPT, QNA_IMAGE_ERROR, readQnaImage } from "@/components/qna/image";
 import {
   qnaBackLinkClass,
   qnaFormCardClass,
@@ -23,6 +24,10 @@ const QnaEditPage: React.FC = () => {
   const [editToken, setEditToken] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const [removeExistingImage, setRemoveExistingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isReauthorizing, setIsReauthorizing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,6 +39,29 @@ const QnaEditPage: React.FC = () => {
       : "/qna";
 
   useEffect(() => {
+    if (!imageFile) {
+      setImagePreview("");
+      return;
+    }
+    const objectUrl = URL.createObjectURL(imageFile);
+    setImagePreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [imageFile]);
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    if (file && !isValidQnaImage(file)) {
+      setError(QNA_IMAGE_ERROR);
+      setImageFile(null);
+      event.target.value = "";
+      return;
+    }
+    setError("");
+    setImageFile(file);
+    if (file) setRemoveExistingImage(false);
+  };
+
+  useEffect(() => {
     if (typeof id !== "string") return;
     const controller = new AbortController();
     setIsLoading(true);
@@ -42,6 +70,8 @@ const QnaEditPage: React.FC = () => {
     setIsUnlocked(false);
     setIsReauthorizing(false);
     setEditToken("");
+    setImageFile(null);
+    setRemoveExistingImage(false);
 
     const loadPost = async () => {
       try {
@@ -63,6 +93,7 @@ const QnaEditPage: React.FC = () => {
           });
           if (unlockResponse.ok) {
             const unlockedPost = await unlockResponse.json();
+            setPost(unlockedPost);
             setTitle(unlockedPost.title);
             setContent(unlockedPost.content);
             setEditToken(savedToken);
@@ -98,6 +129,7 @@ const QnaEditPage: React.FC = () => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "비밀번호를 확인하지 못했습니다.");
       window.sessionStorage.setItem(`qna-edit-token:${post.id}`, result.editToken);
+      setPost(result);
       setEditToken(result.editToken);
       if (!isReauthorizing) {
         setTitle(result.title);
@@ -119,10 +151,18 @@ const QnaEditPage: React.FC = () => {
     setError("");
     setIsSubmitting(true);
     try {
+      const image = imageFile ? await readQnaImage(imageFile) : undefined;
       const response = await fetch("/api/qna", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: post.id, title, content, editToken }),
+        body: JSON.stringify({
+          id: post.id,
+          title,
+          content,
+          editToken,
+          ...(image ? { image } : {}),
+          ...(removeExistingImage ? { removeImage: true } : {}),
+        }),
       });
       const result = await response.json();
       if (response.status === 401) {
@@ -132,7 +172,9 @@ const QnaEditPage: React.FC = () => {
         setIsReauthorizing(true);
       }
       if (!response.ok) throw new Error(result.error || "질문을 수정하지 못했습니다.");
+      window.sessionStorage.setItem(`qna-edit-token:${post.id}`, result.editToken);
       window.alert("질문이 수정되었습니다.");
+      window.sessionStorage.setItem(`qna-return-after-edit:${post.id}`, "1");
       await router.push(detailHref);
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "질문을 수정하지 못했습니다.");
@@ -204,6 +246,47 @@ const QnaEditPage: React.FC = () => {
                   onChange={(event) => setContent(event.target.value)}
                   className={`${qnaInputClass} min-h-[240px] resize-y leading-7`}
                 />
+              </div>
+              <div>
+                <label htmlFor="edit-image" className="block mb-2 text-sm font-semibold text-gray-700">이미지 첨부 <span className="font-normal text-gray-500">· 선택</span></label>
+                <input
+                  id="edit-image"
+                  ref={imageInputRef}
+                  type="file"
+                  accept={QNA_IMAGE_ACCEPT}
+                  onChange={handleImageChange}
+                  className="block w-full rounded-xl border border-[#C9DCC2] bg-white px-4 py-3 text-sm text-gray-700 file:mr-4 file:rounded-lg file:border-0 file:bg-[#E9F4E4] file:px-3 file:py-2 file:font-semibold file:text-primary"
+                />
+                <p className="mt-2 text-sm text-gray-500">JPG, PNG, WebP, GIF · 최대 3MB · 1장</p>
+                {(imagePreview || (post.imageUrl && !removeExistingImage)) && (
+                  <div className="mt-4">
+                    <img
+                      src={imagePreview || post.imageUrl}
+                      alt={imagePreview ? "새로 첨부할 이미지 미리보기" : "현재 첨부된 이미지"}
+                      className="max-h-64 max-w-full rounded-xl border border-[#DDE8D8] object-contain"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImageFile(null);
+                        setRemoveExistingImage(Boolean(post.imageUrl));
+                        if (imageInputRef.current) imageInputRef.current.value = "";
+                      }}
+                      className="mt-2 text-sm font-medium text-gray-600 underline hover:text-primary"
+                    >
+                      이미지 제거
+                    </button>
+                  </div>
+                )}
+                {removeExistingImage && post.imageUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setRemoveExistingImage(false)}
+                    className="mt-3 text-sm font-medium text-primary underline"
+                  >
+                    기존 이미지 유지
+                  </button>
+                )}
               </div>
               {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
               <div className="flex flex-wrap justify-end gap-3 border-t border-[#E4ECE0] pt-6">

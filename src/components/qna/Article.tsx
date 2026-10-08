@@ -23,8 +23,19 @@ const Article = ({ post, showContent }: ArticleProps) => (
       </div>
     </div>
     {showContent && (
-      <div className="min-h-40 py-8 text-base leading-8 text-gray-800 whitespace-pre-wrap break-keep">
-        {post.content}
+      <div className="py-8">
+        <div className="min-h-40 text-base leading-8 text-gray-800 whitespace-pre-wrap break-keep">
+          {post.content}
+        </div>
+        {post.imageUrl && (
+          <a href={post.imageUrl} target="_blank" rel="noopener noreferrer" className="inline-block mt-6">
+            <img
+              src={post.imageUrl}
+              alt="질문에 첨부된 이미지"
+              className="max-w-full max-h-[640px] object-contain"
+            />
+          </a>
+        )}
       </div>
     )}
   </article>
