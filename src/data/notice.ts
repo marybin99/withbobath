@@ -4,6 +4,8 @@ export interface NoticeData {
   date: string;
   author: string;
   content: string;
+  isPrivate?: boolean;
+  imageUrl?: string;
 }
 
 export const notices: NoticeData[] = [
