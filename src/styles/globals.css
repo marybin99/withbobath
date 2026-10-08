@@ -30,6 +30,7 @@ body {
     rgb(var(--background-end-rgb))
   );
   font-family: 'Open Sans', sans-serif;
+  word-break: keep-all;
 }
 
 .container {
