@@ -28,7 +28,11 @@ const Table = () => {
         {pageNotices.map((notice) => (
           <Link
             key={notice.id}
-            href={`/notice/${notice.id}`}
+            href={
+              currentPage === 1
+                ? `/notice/${notice.id}`
+                : `/notice/${notice.id}?page=${currentPage}`
+            }
             className="block px-4 py-3 transition-colors border border-gray-200 rounded-lg bg-[#F5F9F2] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary md:px-5"
           >
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
