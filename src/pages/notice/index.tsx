@@ -21,9 +21,7 @@ const NoticePage: React.FC = () => {
           <h2 className="pb-2 mb-5 text-2xl font-semibold border-b">
             공지사항
           </h2>
-          <div className="overflow-x-auto">
-            <Table />
-          </div>
+          <Table />
         </div>
       </div>
     </Layout>
