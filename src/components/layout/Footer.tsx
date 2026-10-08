@@ -35,7 +35,7 @@ const Footer: React.FC<FooterProps> = ({ isAtBottom }) => {
               </div>
               <div className="space-y-2">
                 <p className="text-base leading-[1.36]">
-                  부산 남구 분포로 113, 220동 101호
+                  부산 남구 분포로 113, 220동 104호
                 </p>
                 <p className="text-base leading-[1.36]">070-4255-3068</p>
                 <p className="text-base leading-[1.36]">평일 09:00 - 18:00</p>

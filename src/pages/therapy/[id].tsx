@@ -1,23 +1,27 @@
 import React from "react";
+import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Layout from "@/components/layout/Layout";
 import { useScroll } from "@/components/layout/Header";
-import { notices } from "@/data/notice";
 import TableDetail from "@/components/notice/TableDetail";
+import { therapyPosts } from "@/data/therapy";
 
-const NoticeDetail: React.FC = () => {
+const TherapyDetail: React.FC = () => {
   const isScrolled = useScroll();
   const router = useRouter();
   const { id, page } = router.query;
-  const notice = notices.find((n) => n.id === Number(id));
+  const post = therapyPosts.find((item) => item.id === Number(id));
   const listHref =
     typeof page === "string" && /^[1-9]\d*$/.test(page)
-      ? `/notice?page=${page}`
-      : "/notice";
+      ? `/therapy?page=${page}`
+      : "/therapy";
 
   return (
     <Layout>
+      <Head>
+        <title>{post ? `${post.title} | 치료정보실` : "치료정보실"} | 더함발달연구센터</title>
+      </Head>
       <div
         className={`bg-white min-h-screen mt-[82px] ${
           isScrolled ? "lg:mt-[108px]" : "lg:mt-[197px]"
@@ -32,11 +36,14 @@ const NoticeDetail: React.FC = () => {
               ← 목록으로
             </Link>
           </div>
-          <TableDetail notice={notice} />
+          <TableDetail
+            notice={post}
+            notFoundMessage="해당 치료정보를 찾을 수 없습니다."
+          />
         </div>
       </div>
     </Layout>
   );
 };
 
-export default NoticeDetail;
+export default TherapyDetail;

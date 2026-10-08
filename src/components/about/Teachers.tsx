@@ -15,7 +15,7 @@ const Teachers = () => {
           >
             <h3 className="text-2xl font-bold">{staff.name}</h3>
             <div
-              className="text-sm leading-relaxed text-gray-800 break-words whitespace-pre-wrap"
+              className="text-sm leading-relaxed text-gray-800 whitespace-pre-wrap"
               dangerouslySetInnerHTML={{ __html: staff.content }}
             />
           </div>
