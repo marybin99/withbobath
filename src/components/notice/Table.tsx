@@ -1,37 +1,49 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { notices } from "@/data/notice";
+import { notices, type NoticeData } from "@/data/notice";
 
 const PAGE_SIZE = 10;
 
-const Table = () => {
+interface TableProps {
+  items?: NoticeData[];
+  basePath?: string;
+  sectionLabel?: string;
+  emptyMessage?: string;
+}
+
+const Table = ({
+  items = notices,
+  basePath = "/notice",
+  sectionLabel = "공지사항",
+  emptyMessage = "등록된 공지사항이 없습니다.",
+}: TableProps) => {
   const router = useRouter();
   const pageQuery = router.query.page;
   const requestedPage =
     typeof pageQuery === "string" && /^\d+$/.test(pageQuery)
       ? Number(pageQuery)
       : 1;
-  const pageCount = Math.max(1, Math.ceil(notices.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
   const currentPage = Math.min(Math.max(requestedPage, 1), pageCount);
-  const pageNotices = notices.slice(
+  const pageNotices = items.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
 
   const pageHref = (page: number) =>
-    page === 1 ? "/notice" : `/notice?page=${page}`;
+    page === 1 ? basePath : `${basePath}?page=${page}`;
 
   return (
     <>
-      <p className="mb-4 text-sm text-gray-600">전체 {notices.length}건</p>
+      <p className="mb-4 text-sm text-gray-600">전체 {items.length}건</p>
       <div className="flex flex-col gap-2">
         {pageNotices.map((notice) => (
           <Link
             key={notice.id}
             href={
               currentPage === 1
-                ? `/notice/${notice.id}`
-                : `/notice/${notice.id}?page=${currentPage}`
+                ? `${basePath}/${notice.id}`
+                : `${basePath}/${notice.id}?page=${currentPage}`
             }
             className="block px-4 py-3 transition-colors border border-gray-200 rounded-lg bg-[#F5F9F2] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary md:px-5"
           >
@@ -46,13 +58,13 @@ const Table = () => {
             </div>
           </Link>
         ))}
-        {notices.length === 0 && (
-          <p className="py-12 text-center text-gray-500">등록된 공지사항이 없습니다.</p>
+        {items.length === 0 && (
+          <p className="py-12 text-center text-gray-500">{emptyMessage}</p>
         )}
       </div>
 
       <div className="flex items-center justify-center min-h-10 mt-6">
-        <nav aria-label="공지사항 페이지" className="flex items-center gap-1">
+        <nav aria-label={`${sectionLabel} 페이지`} className="flex items-center gap-1">
           {currentPage > 1 ? (
             <Link href={pageHref(currentPage - 1)} aria-label="이전 페이지" className="flex items-center justify-center w-9 h-9 rounded hover:bg-[#F5F9F2]">
               &lt;

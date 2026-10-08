@@ -1,11 +1,14 @@
 import { NoticeData } from "@/data/notice";
 import React from "react";
 
-const TableDetail: React.FC<{ notice?: NoticeData }> = ({ notice }) => {
+const TableDetail: React.FC<{ notice?: NoticeData; notFoundMessage?: string }> = ({
+  notice,
+  notFoundMessage = "해당 공지사항을 찾을 수 없습니다.",
+}) => {
   return (
     <>
       {!notice ? (
-        <p className="text-2xl font-bold">해당 공지사항을 찾을 수 없습니다.</p>
+        <p className="text-2xl font-bold">{notFoundMessage}</p>
       ) : (
         <>
           <h1 className="mb-4 text-lg font-bold md:text-2xl">{notice.title}</h1>
